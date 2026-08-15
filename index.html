@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>NEXUS</h1>
+        <p id="status">SYSTEM ONLINE</p>
+    </header>
+
+    <main id="dashboard">
+
+        <section class="dashboard">
+
+            <div class="card" onclick="openMissions()">
+                <h2>MISSION CONTROL</h2>
+                <p>0 active missions</p>
+            </div>
+
+            <div class="card">
+                <h2>PROJECTS</h2>
+                <p>0 active projects</p>
+            </div>
+
+            <div class="card">
+                <h2>PERSONAL STATS</h2>
+                <p>Level 1</p>
+            </div>
+
+            <div class="card">
+                <h2>UPCOMING</h2>
+                <p>No events scheduled</p>
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <main id="missions" class="hidden">
+
+        <button onclick="goHome()">← BACK</button>
+
+        <h2>MISSION CONTROL</h2>
+
+        <div id="missionList">
+            <p>No active missions.</p>
+        </div>
+
+        <button onclick="createMission()">+ NEW MISSION</button>
+
+    </main>
+
+
+    <div id="missionCreator" class="hidden">
+
+        <h2>NEW MISSION</h2>
+
+        <input id="missionName" type="text" placeholder="Mission name">
+
+        <button onclick="saveMission()">CREATE MISSION</button>
+
+        <button onclick="closeMissionCreator()">CANCEL</button>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
