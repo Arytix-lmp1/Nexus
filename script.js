@@ -36,3 +36,7 @@ function saveMission() {
     missionCreator.classList.add("hidden");
     missions.classList.remove("hidden");
 }
+
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./service-worker.js");
+}
