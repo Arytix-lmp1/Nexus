@@ -132,11 +132,10 @@ function updateDashboard() {
             );
     }
 
+
     completionRateStat.textContent =
         `${completionRate}%`;
 
-
-    // Find nearest deadline
 
     const missionsWithDeadlines =
         activeMissions
@@ -298,6 +297,8 @@ function saveMission() {
 
         completed: false,
 
+        subtasks: [],
+
         createdAt:
             new Date().toISOString()
 
@@ -386,6 +387,9 @@ function loadMissions() {
     activeMissions.forEach(
         mission => {
 
+            ensureMissionStructure(mission);
+
+
             const missionElement =
                 document.createElement("div");
 
@@ -410,11 +414,19 @@ function loadMissions() {
 
 
             const progress =
-                Number.isFinite(
-                    Number(mission.progress)
-                )
-                    ? Number(mission.progress)
-                    : 0;
+                calculateMissionProgress(
+                    mission
+                );
+
+
+            const completedSubtasks =
+                mission.subtasks.filter(
+                    subtask => subtask.completed
+                ).length;
+
+
+            const totalSubtasks =
+                mission.subtasks.length;
 
 
             const deadlineText =
@@ -494,11 +506,11 @@ function loadMissions() {
                         <div>
 
                             <span>
-                                PRIORITY
+                                OBJECTIVES
                             </span>
 
                             <strong>
-                                ${priorityText}
+                                ${completedSubtasks} / ${totalSubtasks}
                             </strong>
 
                         </div>
@@ -507,11 +519,11 @@ function loadMissions() {
                         <div>
 
                             <span>
-                                DEADLINE
+                                PRIORITY
                             </span>
 
                             <strong>
-                                ${deadlineText}
+                                ${priorityText}
                             </strong>
 
                         </div>
@@ -557,6 +569,12 @@ function loadMissions() {
     );
 
 
+    localStorage.setItem(
+        "nexusMissions",
+        JSON.stringify(missionsData)
+    );
+
+
     updateDashboard();
 }
 
@@ -585,6 +603,9 @@ function openMissionDetail(id) {
     }
 
 
+    ensureMissionStructure(mission);
+
+
     selectedMissionId = id;
 
     missions.classList.add("hidden");
@@ -598,11 +619,9 @@ function openMissionDetail(id) {
 function renderMissionDetail(mission) {
 
     const progress =
-        Number.isFinite(
-            Number(mission.progress)
-        )
-            ? Number(mission.progress)
-            : 0;
+        calculateMissionProgress(
+            mission
+        );
 
 
     const priority =
@@ -625,6 +644,16 @@ function renderMissionDetail(mission) {
         getDeadlineText(
             mission.deadline
         );
+
+
+    const completedSubtasks =
+        mission.subtasks.filter(
+            subtask => subtask.completed
+        ).length;
+
+
+    const totalSubtasks =
+        mission.subtasks.length;
 
 
     const createdText =
@@ -672,6 +701,8 @@ function renderMissionDetail(mission) {
             </h2>
 
 
+            <!-- PROGRESS -->
+
             <div class="detail-progress">
 
                 <div class="progress-header">
@@ -687,17 +718,6 @@ function renderMissionDetail(mission) {
                 </div>
 
 
-                <input
-                    id="progressSlider"
-                    type="range"
-                    min="0"
-                    max="100"
-                    value="${progress}"
-                    oninput="previewProgress(this.value)"
-                    onchange="updateMissionProgress(this.value)"
-                >
-
-
                 <div class="progress-track large">
 
                     <div
@@ -708,8 +728,67 @@ function renderMissionDetail(mission) {
 
                 </div>
 
+
+                <div class="objective-count">
+
+                    ${completedSubtasks}
+                    /
+                    ${totalSubtasks}
+                    OBJECTIVES COMPLETE
+
+                </div>
+
             </div>
 
+
+            <!-- SUBTASKS -->
+
+            <div class="subtask-section">
+
+                <div class="subtask-heading">
+
+                    <span>
+                        MISSION OBJECTIVES
+                    </span>
+
+                    <span>
+                        ${totalSubtasks}
+                    </span>
+
+                </div>
+
+
+                <div id="subtaskList">
+
+                    ${renderSubtasks(
+                        mission
+                    )}
+
+                </div>
+
+
+                <div class="subtask-creator">
+
+                    <input
+                        id="newSubtask"
+                        type="text"
+                        placeholder="Add objective..."
+                        onkeydown="
+                            if(event.key === 'Enter')
+                            addSubtask()
+                        "
+                    >
+
+                    <button onclick="addSubtask()">
+                        + ADD
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- MISSION INFORMATION -->
 
             <div class="detail-grid">
 
@@ -784,36 +863,95 @@ function renderMissionDetail(mission) {
 }
 
 
-function previewProgress(value) {
+// ========================================
+// SUBTASKS
+// ========================================
 
-    const progressValue =
-        document.getElementById(
-            "detailProgressValue"
-        );
+function renderSubtasks(mission) {
 
+    if (mission.subtasks.length === 0) {
 
-    const progressBar =
-        document.getElementById(
-            "detailProgressBar"
-        );
+        return `
+            <div class="subtask-empty">
 
+                NO OBJECTIVES YET
 
-    if (progressValue) {
-
-        progressValue.textContent =
-            `${value}%`;
+            </div>
+        `;
     }
 
 
-    if (progressBar) {
+    return mission.subtasks
+        .map(
+            (subtask, index) => `
 
-        progressBar.style.width =
-            `${value}%`;
-    }
+                <div
+                    class="
+                        subtask
+                        ${subtask.completed ? "completed" : ""}
+                    "
+                >
+
+                    <button
+                        class="subtask-check"
+                        onclick="
+                            toggleSubtask(${index})
+                        "
+                    >
+
+                        ${subtask.completed ? "✓" : ""}
+
+                    </button>
+
+
+                    <span class="subtask-name">
+
+                        ${escapeHTML(subtask.name)}
+
+                    </span>
+
+
+                    <button
+                        class="subtask-delete"
+                        onclick="
+                            deleteSubtask(${index})
+                        "
+                    >
+
+                        ×
+
+                    </button>
+
+                </div>
+            `
+        )
+        .join("");
 }
 
 
-function updateMissionProgress(value) {
+function addSubtask() {
+
+    const input =
+        document.getElementById(
+            "newSubtask"
+        );
+
+
+    if (!input) {
+
+        return;
+    }
+
+
+    const name =
+        input.value.trim();
+
+
+    if (name === "") {
+
+        return;
+    }
+
 
     let missionsData =
         JSON.parse(
@@ -833,13 +971,115 @@ function updateMissionProgress(value) {
     }
 
 
+    ensureMissionStructure(mission);
+
+
+    mission.subtasks.push({
+
+        id: Date.now(),
+
+        name: name,
+
+        completed: false
+
+    });
+
+
+    updateMissionAfterSubtaskChange(
+        missionsData,
+        mission
+    );
+}
+
+
+function toggleSubtask(index) {
+
+    let missionsData =
+        JSON.parse(
+            localStorage.getItem("nexusMissions")
+        ) || [];
+
+
+    const mission =
+        missionsData.find(
+            mission => mission.id === selectedMissionId
+        );
+
+
+    if (!mission) {
+
+        return;
+    }
+
+
+    ensureMissionStructure(mission);
+
+
+    const subtask =
+        mission.subtasks[index];
+
+
+    if (!subtask) {
+
+        return;
+    }
+
+
+    subtask.completed =
+        !subtask.completed;
+
+
+    updateMissionAfterSubtaskChange(
+        missionsData,
+        mission
+    );
+}
+
+
+function deleteSubtask(index) {
+
+    let missionsData =
+        JSON.parse(
+            localStorage.getItem("nexusMissions")
+        ) || [];
+
+
+    const mission =
+        missionsData.find(
+            mission => mission.id === selectedMissionId
+        );
+
+
+    if (!mission) {
+
+        return;
+    }
+
+
+    ensureMissionStructure(mission);
+
+
+    mission.subtasks.splice(
+        index,
+        1
+    );
+
+
+    updateMissionAfterSubtaskChange(
+        missionsData,
+        mission
+    );
+}
+
+
+function updateMissionAfterSubtaskChange(
+    missionsData,
+    mission
+) {
+
     mission.progress =
-        Math.max(
-            0,
-            Math.min(
-                100,
-                Number(value)
-            )
+        calculateMissionProgress(
+            mission
         );
 
 
@@ -849,19 +1089,46 @@ function updateMissionProgress(value) {
     );
 
 
-    loadMissions();
+    renderMissionDetail(mission);
+
+    updateDashboard();
 }
 
 
-function closeMissionDetail() {
+// ========================================
+// PROGRESS CALCULATION
+// ========================================
 
-    selectedMissionId = null;
+function calculateMissionProgress(mission) {
 
-    missionDetail.classList.add("hidden");
+    ensureMissionStructure(mission);
 
-    missions.classList.remove("hidden");
 
-    loadMissions();
+    if (mission.subtasks.length === 0) {
+
+        return Number(mission.progress) || 0;
+    }
+
+
+    const completed =
+        mission.subtasks.filter(
+            subtask => subtask.completed
+        ).length;
+
+
+    return Math.round(
+        (completed /
+        mission.subtasks.length) * 100
+    );
+}
+
+
+function ensureMissionStructure(mission) {
+
+    if (!Array.isArray(mission.subtasks)) {
+
+        mission.subtasks = [];
+    }
 }
 
 
@@ -889,12 +1156,22 @@ function completeMission(id) {
     }
 
 
+    ensureMissionStructure(mission);
+
+
     mission.progress = 100;
 
     mission.completed = true;
 
     mission.completedAt =
         new Date().toISOString();
+
+
+    mission.subtasks.forEach(
+        subtask => {
+            subtask.completed = true;
+        }
+    );
 
 
     localStorage.setItem(
@@ -964,6 +1241,11 @@ function loadArchive() {
         .forEach(
             mission => {
 
+                ensureMissionStructure(
+                    mission
+                );
+
+
                 const missionElement =
                     document.createElement("div");
 
@@ -976,6 +1258,12 @@ function loadArchive() {
 
                 missionElement.dataset.priority =
                     mission.priority || "normal";
+
+
+                const completedSubtasks =
+                    mission.subtasks.filter(
+                        subtask => subtask.completed
+                    ).length;
 
 
                 missionElement.innerHTML = `
@@ -999,7 +1287,9 @@ function loadArchive() {
                     >
 
                         <div class="mission-title">
+
                             ${escapeHTML(mission.name)}
+
                         </div>
 
 
@@ -1031,6 +1321,21 @@ function loadArchive() {
 
 
                         <div class="mission-info">
+
+                            <div>
+
+                                <span>
+                                    OBJECTIVES
+                                </span>
+
+                                <strong>
+                                    ${completedSubtasks}
+                                    /
+                                    ${mission.subtasks.length}
+                                </strong>
+
+                            </div>
+
 
                             <div>
 
