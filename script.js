@@ -32,11 +32,13 @@ function closeMissionCreator() {
 
 
 // ================================
-// MISSIONS
+// CREATE MISSION
 // ================================
 
 function saveMission() {
     const name = document.getElementById("missionName").value.trim();
+    const priority = document.getElementById("missionPriority").value;
+    const deadline = document.getElementById("missionDeadline").value;
 
     if (name === "") {
         alert("Enter a mission name.");
@@ -48,6 +50,8 @@ function saveMission() {
     const newMission = {
         id: Date.now(),
         name: name,
+        priority: priority,
+        deadline: deadline,
         completed: false
     };
 
@@ -56,6 +60,8 @@ function saveMission() {
     localStorage.setItem("nexusMissions", JSON.stringify(missionsData));
 
     document.getElementById("missionName").value = "";
+    document.getElementById("missionPriority").value = "normal";
+    document.getElementById("missionDeadline").value = "";
 
     missionCreator.classList.add("hidden");
     missions.classList.remove("hidden");
@@ -69,7 +75,6 @@ function saveMission() {
 // ================================
 
 function loadMissions() {
-
     let missionsData = JSON.parse(localStorage.getItem("nexusMissions")) || [];
 
     if (missionsData.length === 0) {
@@ -83,13 +88,31 @@ function loadMissions() {
 
         const missionElement = document.createElement("div");
 
+        missionElement.classList.add("mission-card");
+
+        const deadlineText = mission.deadline
+            ? new Date(mission.deadline + "T00:00:00").toLocaleDateString()
+            : "NO DEADLINE";
+
+        const priorityText = mission.priority
+            ? mission.priority.toUpperCase()
+            : "NORMAL";
+
         missionElement.innerHTML = `
-            <p>
+            <div class="mission-title">
                 🎯 ${mission.name}
+            </div>
+
+            <div class="mission-info">
+                <span>PRIORITY: ${priorityText}</span>
+                <span>DEADLINE: ${deadlineText}</span>
+            </div>
+
+            <div class="mission-actions">
                 <button onclick="completeMission(${mission.id})">
                     COMPLETE
                 </button>
-            </p>
+            </div>
         `;
 
         missionList.appendChild(missionElement);
@@ -102,7 +125,6 @@ function loadMissions() {
 // ================================
 
 function completeMission(id) {
-
     let missionsData = JSON.parse(localStorage.getItem("nexusMissions")) || [];
 
     missionsData = missionsData.filter(mission => mission.id !== id);

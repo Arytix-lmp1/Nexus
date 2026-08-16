@@ -60,15 +60,18 @@
 
 
     <div id="missionCreator" class="hidden">
-
         <h2>NEW MISSION</h2>
-
         <input id="missionName" type="text" placeholder="Mission name">
-
+        <select id="missionPriority">
+            <option value="low">LOW PRIORITY</option>
+            <option value="normal">NORMAL PRIORITY</option>
+            <option value="high">HIGH PRIORITY</option>
+            <option value="critical">CRITICAL</option>
+        </select>
+        <input id="missionDeadline" type="date">
+        <br>
         <button onclick="saveMission()">CREATE MISSION</button>
-
         <button onclick="closeMissionCreator()">CANCEL</button>
-
     </div>
 
 
