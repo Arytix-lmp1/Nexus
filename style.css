@@ -1508,3 +1508,28 @@ button:active {
         font-size: 24px;
     }
 }
+
+/* ========================================
+   DARK SELECT MENU
+======================================== */
+
+#missionPriority {
+    appearance: none;
+    -webkit-appearance: none;
+
+    color: #e8ebf0 !important;
+
+    background-color: #111822 !important;
+
+    border: 1px solid #34465f !important;
+
+    cursor: pointer;
+
+    color-scheme: dark;
+}
+
+#missionPriority option {
+    color: #e8ebf0;
+
+    background-color: #111822;
+}
