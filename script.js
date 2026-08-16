@@ -34,36 +34,170 @@ const currentPriority =
 const priorityIndicator =
     document.getElementById("priorityIndicator");
 
-
 let selectedMissionId = null;
 
 
-// ========================================
-// DATA
-// ========================================
+/* ========================================
+   DATA
+======================================== */
 
 function getMissions() {
-
     return JSON.parse(
         localStorage.getItem("nexusMissions")
     ) || [];
-
 }
 
-
 function saveMissions(missionsData) {
-
     localStorage.setItem(
         "nexusMissions",
         JSON.stringify(missionsData)
     );
-
 }
 
 
-// ========================================
-// NAVIGATION
-// ========================================
+/* ========================================
+   ACTIVITY LOG
+======================================== */
+
+function getActivity() {
+    return JSON.parse(
+        localStorage.getItem("nexusActivity")
+    ) || [];
+}
+
+function saveActivity(activity) {
+    localStorage.setItem(
+        "nexusActivity",
+        JSON.stringify(activity)
+    );
+}
+
+function logActivity(type, text) {
+
+    const activity = getActivity();
+
+    activity.push({
+        id: Date.now(),
+        type: type,
+        text: text,
+        timestamp: new Date().toISOString()
+    });
+
+    // Keep the most recent 50 events
+    if (activity.length > 50) {
+        activity.splice(
+            0,
+            activity.length - 50
+        );
+    }
+
+    saveActivity(activity);
+
+    renderActivityFeed();
+}
+
+function formatActivityTime(timestamp) {
+
+    const date =
+        new Date(timestamp);
+
+    return date.toLocaleTimeString(
+        "en-GB",
+        {
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
+}
+
+function renderActivityFeed() {
+
+    let feed =
+        document.getElementById(
+            "nexusActivityFeed"
+        );
+
+    if (!feed) {
+
+        feed =
+            document.createElement(
+                "div"
+            );
+
+        feed.id =
+            "nexusActivityFeed";
+
+        feed.className =
+            "nexus-activity-feed";
+
+        dashboard.appendChild(feed);
+    }
+
+    const activity =
+        getActivity()
+            .slice()
+            .reverse()
+            .slice(0, 8);
+
+    if (activity.length === 0) {
+
+        feed.innerHTML = `
+            <div class="activity-header">
+                <span>ACTIVITY LOG</span>
+                <span>NO EVENTS</span>
+            </div>
+
+            <div class="activity-empty">
+                NEXUS IS AWAITING ACTIVITY.
+            </div>
+        `;
+
+        return;
+    }
+
+    feed.innerHTML = `
+        <div class="activity-header">
+            <span>ACTIVITY LOG</span>
+            <span>${activity.length} EVENTS</span>
+        </div>
+
+        <div class="activity-list">
+
+            ${activity.map(event => `
+
+                <div
+                    class="activity-event"
+                    data-type="${event.type}"
+                >
+
+                    <span class="activity-time">
+                        ${formatActivityTime(
+                            event.timestamp
+                        )}
+                    </span>
+
+                    <span class="activity-dot">
+                        ●
+                    </span>
+
+                    <span class="activity-text">
+                        ${escapeHTML(
+                            event.text
+                        )}
+                    </span>
+
+                </div>
+
+            `).join("")}
+
+        </div>
+    `;
+}
+
+
+/* ========================================
+   NAVIGATION
+======================================== */
 
 function openMissions() {
 
@@ -75,9 +209,7 @@ function openMissions() {
     missions.classList.remove("hidden");
 
     loadMissions();
-
 }
-
 
 function goHome() {
 
@@ -89,18 +221,15 @@ function goHome() {
     dashboard.classList.remove("hidden");
 
     updateDashboard();
-
+    renderActivityFeed();
 }
-
 
 function createMission() {
 
     missions.classList.add("hidden");
 
     missionCreator.classList.remove("hidden");
-
 }
-
 
 function closeMissionCreator() {
 
@@ -109,9 +238,7 @@ function closeMissionCreator() {
     missions.classList.remove("hidden");
 
     loadMissions();
-
 }
-
 
 function closeMissionDetail() {
 
@@ -122,9 +249,7 @@ function closeMissionDetail() {
     missions.classList.remove("hidden");
 
     loadMissions();
-
 }
-
 
 function openArchive() {
 
@@ -136,9 +261,7 @@ function openArchive() {
     archive.classList.remove("hidden");
 
     loadArchive();
-
 }
-
 
 function goHomeFromArchive() {
 
@@ -147,56 +270,45 @@ function goHomeFromArchive() {
     dashboard.classList.remove("hidden");
 
     updateDashboard();
-
+    renderActivityFeed();
 }
 
 
-// ========================================
-// PRIORITY INTELLIGENCE
-// ========================================
+/* ========================================
+   PRIORITY
+======================================== */
 
 const priorityWeights = {
-
     critical: 4,
     high: 3,
     normal: 2,
     low: 1
-
 };
 
-
 function getPriorityWeight(priority) {
-
     return priorityWeights[priority] || 2;
-
 }
 
 
-// ========================================
-// DEADLINE INTELLIGENCE
-// ========================================
+/* ========================================
+   DEADLINES
+======================================== */
 
 function getDeadlineTimestamp(deadline) {
 
     if (!deadline) {
-
         return Infinity;
-
     }
 
     return new Date(
         deadline + "T00:00:00"
     ).getTime();
-
 }
-
 
 function getDaysUntilDeadline(deadline) {
 
     if (!deadline) {
-
         return null;
-
     }
 
     const today = new Date();
@@ -219,62 +331,48 @@ function getDaysUntilDeadline(deadline) {
         ) /
         (1000 * 60 * 60 * 24)
     );
-
 }
-
 
 function getDeadlineState(deadline) {
 
     if (!deadline) {
-
         return "none";
-
     }
 
     const days =
-        getDaysUntilDeadline(deadline);
-
+        getDaysUntilDeadline(
+            deadline
+        );
 
     if (days < 0) {
-
         return "overdue";
-
     }
 
     if (days === 0) {
-
         return "today";
-
     }
 
     if (days <= 2) {
-
         return "urgent";
-
     }
 
     if (days <= 7) {
-
         return "approaching";
-
     }
 
     return "normal";
-
 }
-
 
 function getDeadlineText(deadline) {
 
     if (!deadline) {
-
         return "NO DEADLINE";
-
     }
 
     const days =
-        getDaysUntilDeadline(deadline);
-
+        getDaysUntilDeadline(
+            deadline
+        );
 
     if (days < 0) {
 
@@ -284,103 +382,55 @@ function getDeadlineText(deadline) {
         return overdue === 1
             ? "1 DAY OVERDUE"
             : `${overdue} DAYS OVERDUE`;
-
     }
 
     if (days === 0) {
-
         return "DUE TODAY";
-
     }
 
     if (days === 1) {
-
         return "DUE TOMORROW";
-
     }
 
     return `${days} DAYS`;
-
 }
-
 
 function getDeadlineShortStatus(deadline) {
 
     if (!deadline) {
-
         return "NONE";
-
     }
 
     const days =
-        getDaysUntilDeadline(deadline);
-
+        getDaysUntilDeadline(
+            deadline
+        );
 
     if (days < 0) {
-
         return "OVERDUE";
-
     }
 
     if (days === 0) {
-
         return "TODAY";
-
     }
 
     if (days === 1) {
-
         return "TOMORROW";
-
     }
 
     if (days <= 7) {
-
         return `${days} DAYS`;
-
     }
 
-    return formatShortDate(deadline);
-
-}
-
-
-// ========================================
-// MISSION INTELLIGENCE
-// ========================================
-
-function calculateMissionProgress(mission) {
-
-    ensureMissionStructure(mission);
-
-
-    if (
-        mission.subtasks.length === 0
-    ) {
-
-        return Number(
-            mission.progress
-        ) || 0;
-
-    }
-
-
-    const completed =
-        mission.subtasks.filter(
-            subtask =>
-                subtask.completed
-        ).length;
-
-
-    return Math.round(
-        (
-            completed /
-            mission.subtasks.length
-        ) * 100
+    return formatShortDate(
+        deadline
     );
-
 }
 
+
+/* ========================================
+   MISSION INTELLIGENCE
+======================================== */
 
 function ensureMissionStructure(mission) {
 
@@ -389,15 +439,42 @@ function ensureMissionStructure(mission) {
             mission.subtasks
         )
     ) {
-
         mission.subtasks = [];
-
     }
-
 }
 
+function calculateMissionProgress(mission) {
 
-function sortActiveMissions(missionsData) {
+    ensureMissionStructure(
+        mission
+    );
+
+    if (
+        mission.subtasks.length === 0
+    ) {
+
+        return Number(
+            mission.progress
+        ) || 0;
+    }
+
+    const completed =
+        mission.subtasks.filter(
+            subtask =>
+                subtask.completed
+        ).length;
+
+    return Math.round(
+        (
+            completed /
+            mission.subtasks.length
+        ) * 100
+    );
+}
+
+function sortActiveMissions(
+    missionsData
+) {
 
     return missionsData
         .filter(
@@ -415,15 +492,11 @@ function sortActiveMissions(missionsData) {
                         a.priority
                     );
 
-
                 if (
                     priorityDifference !== 0
                 ) {
-
                     return priorityDifference;
-
                 }
-
 
                 return (
                     getDeadlineTimestamp(
@@ -433,22 +506,19 @@ function sortActiveMissions(missionsData) {
                         b.deadline
                     )
                 );
-
             }
         );
-
 }
 
 
-// ========================================
-// DASHBOARD INTELLIGENCE
-// ========================================
+/* ========================================
+   DASHBOARD
+======================================== */
 
 function updateDashboard() {
 
     const missionsData =
         getMissions();
-
 
     const activeMissions =
         missionsData.filter(
@@ -456,19 +526,16 @@ function updateDashboard() {
                 !mission.completed
         );
 
-
     const completedMissions =
         missionsData.filter(
             mission =>
                 mission.completed
         );
 
-
     activeMissionStat.textContent =
         String(
             activeMissions.length
         ).padStart(2, "0");
-
 
     const completionRate =
         missionsData.length === 0
@@ -480,10 +547,8 @@ function updateDashboard() {
                 ) * 100
             );
 
-
     completionRateStat.textContent =
         `${completionRate}%`;
-
 
     const deadlineMissions =
         activeMissions
@@ -501,7 +566,6 @@ function updateDashboard() {
                     )
             );
 
-
     if (
         deadlineMissions.length > 0
     ) {
@@ -515,20 +579,12 @@ function updateDashboard() {
 
         nextDeadlineStat.textContent =
             "NONE";
-
     }
-
 
     updateCurrentPriority(
         activeMissions
     );
-
 }
-
-
-// ========================================
-// CURRENT PRIORITY
-// ========================================
 
 function updateCurrentPriority(
     activeMissions
@@ -539,7 +595,6 @@ function updateCurrentPriority(
     ) {
 
         currentPriority.innerHTML = `
-
             <strong>
                 NO ACTIVE PRIORITY
             </strong>
@@ -547,51 +602,36 @@ function updateCurrentPriority(
             <p>
                 Nexus is awaiting an objective.
             </p>
-
         `;
-
 
         priorityIndicator.textContent =
             "● STANDBY";
 
-
         priorityIndicator.dataset.priority =
             "none";
 
-
         return;
-
     }
-
 
     const sorted =
         sortActiveMissions(
             activeMissions
         );
 
-
     const mission =
         sorted[0];
 
-
     const priority =
-        mission.priority || "normal";
-
-
-    currentPriority.dataset.priority =
-        priority;
-
+        mission.priority ||
+        "normal";
 
     priorityIndicator.dataset.priority =
         priority;
 
-
     priorityIndicator.textContent =
         `● ${priority.toUpperCase()}`;
 
-
     currentPriority.innerHTML = `
-
         <strong>
             ${escapeHTML(
                 mission.name
@@ -605,15 +645,13 @@ function updateCurrentPriority(
                 mission
             )}% COMPLETE
         </p>
-
     `;
-
 }
 
 
-// ========================================
-// CREATE MISSION
-// ========================================
+/* ========================================
+   CREATE MISSION
+======================================== */
 
 function saveMission() {
 
@@ -625,14 +663,12 @@ function saveMission() {
             .value
             .trim();
 
-
     const priority =
         document
             .getElementById(
                 "missionPriority"
             )
             .value;
-
 
     const deadline =
         document
@@ -641,7 +677,6 @@ function saveMission() {
             )
             .value;
 
-
     if (name === "") {
 
         alert(
@@ -649,13 +684,10 @@ function saveMission() {
         );
 
         return;
-
     }
-
 
     const missionsData =
         getMissions();
-
 
     const newMission = {
 
@@ -675,34 +707,32 @@ function saveMission() {
 
         createdAt:
             new Date().toISOString()
-
     };
-
 
     missionsData.push(
         newMission
     );
 
-
     saveMissions(
         missionsData
     );
 
+    logActivity(
+        "created",
+        `MISSION CREATED: ${name}`
+    );
 
     document.getElementById(
         "missionName"
     ).value = "";
 
-
     document.getElementById(
         "missionPriority"
     ).value = "normal";
 
-
     document.getElementById(
         "missionDeadline"
     ).value = "";
-
 
     missionCreator.classList.add(
         "hidden"
@@ -712,40 +742,34 @@ function saveMission() {
         "hidden"
     );
 
-
     loadMissions();
-
 }
 
 
-// ========================================
-// LOAD MISSIONS
-// ========================================
+/* ========================================
+   MISSIONS
+======================================== */
 
 function loadMissions() {
 
     const missionsData =
         getMissions();
 
-
     const activeMissions =
         sortActiveMissions(
             missionsData
         );
-
 
     missionCount.textContent =
         String(
             activeMissions.length
         ).padStart(2, "0");
 
-
     if (
         activeMissions.length === 0
     ) {
 
         missionList.innerHTML = `
-
             <div class="empty-state">
 
                 <span>
@@ -757,19 +781,14 @@ function loadMissions() {
                 </p>
 
             </div>
-
         `;
-
 
         updateDashboard();
 
         return;
-
     }
 
-
     missionList.innerHTML = "";
-
 
     activeMissions.forEach(
         mission => {
@@ -778,12 +797,10 @@ function loadMissions() {
                 mission
             );
 
-
             const progress =
                 calculateMissionProgress(
                     mission
                 );
-
 
             const completedSubtasks =
                 mission.subtasks.filter(
@@ -791,36 +808,29 @@ function loadMissions() {
                         subtask.completed
                 ).length;
 
-
             const totalSubtasks =
                 mission.subtasks.length;
-
 
             const deadlineState =
                 getDeadlineState(
                     mission.deadline
                 );
 
-
             const missionElement =
                 document.createElement(
                     "div"
                 );
 
-
             missionElement.classList.add(
                 "mission-card"
             );
-
 
             missionElement.dataset.priority =
                 mission.priority ||
                 "normal";
 
-
             missionElement.dataset.deadlineState =
                 deadlineState;
-
 
             missionElement.innerHTML = `
 
@@ -836,21 +846,16 @@ function loadMissions() {
                     <div class="mission-header">
 
                         <span class="mission-status">
-
                             ● ACTIVE
-
                         </span>
 
                         <span class="mission-id">
-
                             #${String(
                                 mission.id
                             ).slice(-4)}
-
                         </span>
 
                     </div>
-
 
                     <div class="mission-title">
 
@@ -859,7 +864,6 @@ function loadMissions() {
                         )}
 
                     </div>
-
 
                     <div class="mission-progress-section">
 
@@ -875,7 +879,6 @@ function loadMissions() {
 
                         </div>
 
-
                         <div class="progress-track">
 
                             <div
@@ -888,7 +891,6 @@ function loadMissions() {
                         </div>
 
                     </div>
-
 
                     <div class="mission-info">
 
@@ -906,7 +908,6 @@ function loadMissions() {
 
                         </div>
 
-
                         <div>
 
                             <span>
@@ -922,16 +923,13 @@ function loadMissions() {
 
                         </div>
 
-
                         <div>
 
                             <span>
                                 TIME STATUS
                             </span>
 
-                            <strong
-                                class="deadline-status"
-                            >
+                            <strong class="deadline-status">
                                 ${getDeadlineText(
                                     mission.deadline
                                 )}
@@ -942,7 +940,6 @@ function loadMissions() {
                     </div>
 
                 </div>
-
 
                 <div class="mission-actions">
 
@@ -958,37 +955,30 @@ function loadMissions() {
                     </button>
 
                 </div>
-
             `;
-
 
             missionList.appendChild(
                 missionElement
             );
-
         }
     );
-
 
     saveMissions(
         missionsData
     );
 
-
     updateDashboard();
-
 }
 
 
-// ========================================
-// MISSION DETAIL
-// ========================================
+/* ========================================
+   MISSION DETAIL
+======================================== */
 
 function openMissionDetail(id) {
 
     const missionsData =
         getMissions();
-
 
     const mission =
         missionsData.find(
@@ -996,21 +986,15 @@ function openMissionDetail(id) {
                 mission.id === id
         );
 
-
     if (!mission) {
-
         return;
-
     }
-
 
     ensureMissionStructure(
         mission
     );
 
-
     selectedMissionId = id;
-
 
     missions.classList.add(
         "hidden"
@@ -1020,13 +1004,10 @@ function openMissionDetail(id) {
         "hidden"
     );
 
-
     renderMissionDetail(
         mission
     );
-
 }
-
 
 function renderMissionDetail(
     mission
@@ -1037,17 +1018,14 @@ function renderMissionDetail(
             mission
         );
 
-
     const priority =
         mission.priority ||
         "normal";
-
 
     const deadlineState =
         getDeadlineState(
             mission.deadline
         );
-
 
     const completedSubtasks =
         mission.subtasks.filter(
@@ -1055,10 +1033,8 @@ function renderMissionDetail(
                 subtask.completed
         ).length;
 
-
     const totalSubtasks =
         mission.subtasks.length;
-
 
     missionDetailContent.innerHTML = `
 
@@ -1077,24 +1053,18 @@ function renderMissionDetail(
                     </span>
 
                     <div class="detail-id">
-
                         #${String(
                             mission.id
                         ).slice(-4)}
-
                     </div>
 
                 </div>
 
-
                 <div class="detail-status">
-
                     ● ACTIVE
-
                 </div>
 
             </div>
-
 
             <h2 class="detail-title">
 
@@ -1103,7 +1073,6 @@ function renderMissionDetail(
                 )}
 
             </h2>
-
 
             <div class="detail-progress">
 
@@ -1119,7 +1088,6 @@ function renderMissionDetail(
 
                 </div>
 
-
                 <div class="progress-track large">
 
                     <div
@@ -1131,7 +1099,6 @@ function renderMissionDetail(
 
                 </div>
 
-
                 <div class="objective-count">
 
                     ${completedSubtasks}
@@ -1142,7 +1109,6 @@ function renderMissionDetail(
                 </div>
 
             </div>
-
 
             <div class="subtask-section">
 
@@ -1158,7 +1124,6 @@ function renderMissionDetail(
 
                 </div>
 
-
                 <div id="subtaskList">
 
                     ${renderSubtasks(
@@ -1166,7 +1131,6 @@ function renderMissionDetail(
                     )}
 
                 </div>
-
 
                 <div class="subtask-creator">
 
@@ -1180,7 +1144,6 @@ function renderMissionDetail(
                         "
                     >
 
-
                     <button
                         onclick="addSubtask()"
                     >
@@ -1190,7 +1153,6 @@ function renderMissionDetail(
                 </div>
 
             </div>
-
 
             <div class="detail-grid">
 
@@ -1205,7 +1167,6 @@ function renderMissionDetail(
                     </strong>
 
                 </div>
-
 
                 <div class="detail-stat">
 
@@ -1225,23 +1186,19 @@ function renderMissionDetail(
 
                 </div>
 
-
                 <div class="detail-stat">
 
                     <span>
                         TIME STATUS
                     </span>
 
-                    <strong
-                        class="deadline-status"
-                    >
+                    <strong class="deadline-status">
                         ${getDeadlineText(
                             mission.deadline
                         )}
                     </strong>
 
                 </div>
-
 
                 <div class="detail-stat">
 
@@ -1263,7 +1220,6 @@ function renderMissionDetail(
 
             </div>
 
-
             <div class="detail-actions">
 
                 <button
@@ -1279,15 +1235,13 @@ function renderMissionDetail(
             </div>
 
         </div>
-
     `;
-
 }
 
 
-// ========================================
-// SUBTASKS
-// ========================================
+/* ========================================
+   SUBTASKS
+======================================== */
 
 function renderSubtasks(
     mission
@@ -1298,17 +1252,11 @@ function renderSubtasks(
     ) {
 
         return `
-
             <div class="subtask-empty">
-
                 NO OBJECTIVES YET
-
             </div>
-
         `;
-
     }
-
 
     return mission.subtasks
         .map(
@@ -1336,15 +1284,12 @@ function renderSubtasks(
                             )
                         "
                     >
-
                         ${
                             subtask.completed
                                 ? "✓"
                                 : ""
                         }
-
                     </button>
-
 
                     <span class="subtask-name">
 
@@ -1354,7 +1299,6 @@ function renderSubtasks(
 
                     </span>
 
-
                     <button
                         class="subtask-delete"
                         onclick="
@@ -1363,19 +1307,14 @@ function renderSubtasks(
                             )
                         "
                     >
-
                         ×
-
                     </button>
 
                 </div>
-
             `
         )
         .join("");
-
 }
-
 
 function addSubtask() {
 
@@ -1384,28 +1323,19 @@ function addSubtask() {
             "newSubtask"
         );
 
-
     if (!input) {
-
         return;
-
     }
-
 
     const name =
         input.value.trim();
 
-
     if (name === "") {
-
         return;
-
     }
-
 
     const missionsData =
         getMissions();
-
 
     const mission =
         missionsData.find(
@@ -1414,18 +1344,13 @@ function addSubtask() {
                 selectedMissionId
         );
 
-
     if (!mission) {
-
         return;
-
     }
-
 
     ensureMissionStructure(
         mission
     );
-
 
     mission.subtasks.push({
 
@@ -1434,37 +1359,34 @@ function addSubtask() {
         name: name,
 
         completed: false
-
     });
-
 
     mission.progress =
         calculateMissionProgress(
             mission
         );
 
-
     saveMissions(
         missionsData
     );
 
+    logActivity(
+        "objective",
+        `OBJECTIVE ADDED: ${name}`
+    );
 
     renderMissionDetail(
         mission
     );
 
-
     updateDashboard();
-
 }
-
 
 function toggleSubtask(index) {
 
     const missionsData =
         getMissions();
 
-
     const mission =
         missionsData.find(
             mission =>
@@ -1472,59 +1394,54 @@ function toggleSubtask(index) {
                 selectedMissionId
         );
 
-
     if (!mission) {
-
         return;
-
     }
-
 
     ensureMissionStructure(
         mission
     );
 
-
     if (
         !mission.subtasks[index]
     ) {
-
         return;
-
     }
 
+    const subtask =
+        mission.subtasks[index];
 
-    mission.subtasks[index].completed =
-        !mission.subtasks[index].completed;
-
+    subtask.completed =
+        !subtask.completed;
 
     mission.progress =
         calculateMissionProgress(
             mission
         );
 
-
     saveMissions(
         missionsData
     );
 
+    logActivity(
+        "objective",
+        subtask.completed
+            ? `OBJECTIVE COMPLETED: ${subtask.name}`
+            : `OBJECTIVE REOPENED: ${subtask.name}`
+    );
 
     renderMissionDetail(
         mission
     );
 
-
     updateDashboard();
-
 }
-
 
 function deleteSubtask(index) {
 
     const missionsData =
         getMissions();
 
-
     const mission =
         missionsData.find(
             mission =>
@@ -1532,55 +1449,55 @@ function deleteSubtask(index) {
                 selectedMissionId
         );
 
-
     if (!mission) {
-
         return;
-
     }
-
 
     ensureMissionStructure(
         mission
     );
 
+    const removed =
+        mission.subtasks[index];
 
     mission.subtasks.splice(
         index,
         1
     );
 
-
     mission.progress =
         calculateMissionProgress(
             mission
         );
 
-
     saveMissions(
         missionsData
     );
 
+    if (removed) {
+
+        logActivity(
+            "objective",
+            `OBJECTIVE REMOVED: ${removed.name}`
+        );
+    }
 
     renderMissionDetail(
         mission
     );
 
-
     updateDashboard();
-
 }
 
 
-// ========================================
-// COMPLETE MISSION
-// ========================================
+/* ========================================
+   COMPLETE MISSION
+======================================== */
 
 function completeMission(id) {
 
     const missionsData =
         getMissions();
-
 
     const mission =
         missionsData.find(
@@ -1588,18 +1505,13 @@ function completeMission(id) {
                 mission.id === id
         );
 
-
     if (!mission) {
-
         return;
-
     }
-
 
     ensureMissionStructure(
         mission
     );
-
 
     mission.progress = 100;
 
@@ -1608,48 +1520,43 @@ function completeMission(id) {
     mission.completedAt =
         new Date().toISOString();
 
-
     mission.subtasks.forEach(
         subtask => {
-
             subtask.completed = true;
-
         }
     );
-
 
     saveMissions(
         missionsData
     );
 
+    logActivity(
+        "completed",
+        `MISSION COMPLETED: ${mission.name}`
+    );
 
     selectedMissionId = null;
-
 
     missionDetail.classList.add(
         "hidden"
     );
 
-
     missions.classList.remove(
         "hidden"
     );
 
-
     loadMissions();
-
 }
 
 
-// ========================================
-// ARCHIVE
-// ========================================
+/* ========================================
+   ARCHIVE
+======================================== */
 
 function loadArchive() {
 
     const missionsData =
         getMissions();
-
 
     const completedMissions =
         missionsData.filter(
@@ -1657,19 +1564,16 @@ function loadArchive() {
                 mission.completed
         );
 
-
     archiveCount.textContent =
         String(
             completedMissions.length
         ).padStart(2, "0");
-
 
     if (
         completedMissions.length === 0
     ) {
 
         archiveList.innerHTML = `
-
             <div class="empty-state">
 
                 <span>
@@ -1681,16 +1585,12 @@ function loadArchive() {
                 </p>
 
             </div>
-
         `;
 
         return;
-
     }
 
-
     archiveList.innerHTML = "";
-
 
     completedMissions
         .slice()
@@ -1702,44 +1602,35 @@ function loadArchive() {
                     mission
                 );
 
-
                 const missionElement =
                     document.createElement(
                         "div"
                     );
-
 
                 missionElement.classList.add(
                     "mission-card",
                     "archived"
                 );
 
-
                 missionElement.dataset.priority =
                     mission.priority ||
                     "normal";
-
 
                 missionElement.innerHTML = `
 
                     <div class="mission-header">
 
                         <span class="mission-status">
-
                             ✓ COMPLETED
-
                         </span>
 
                         <span class="mission-id">
-
                             #${String(
                                 mission.id
                             ).slice(-4)}
-
                         </span>
 
                     </div>
-
 
                     <div
                         class="mission-click-area"
@@ -1758,7 +1649,6 @@ function loadArchive() {
 
                         </div>
 
-
                         <div class="mission-progress-section">
 
                             <div class="progress-header">
@@ -1773,7 +1663,6 @@ function loadArchive() {
 
                             </div>
 
-
                             <div class="progress-track">
 
                                 <div
@@ -1784,7 +1673,6 @@ function loadArchive() {
                             </div>
 
                         </div>
-
 
                         <div class="mission-info">
 
@@ -1809,7 +1697,6 @@ function loadArchive() {
 
                             </div>
 
-
                             <div>
 
                                 <span>
@@ -1824,7 +1711,6 @@ function loadArchive() {
                                 </strong>
 
                             </div>
-
 
                             <div>
 
@@ -1847,41 +1733,33 @@ function loadArchive() {
                         </div>
 
                     </div>
-
                 `;
-
 
                 archiveList.appendChild(
                     missionElement
                 );
-
             }
         );
-
 }
 
 
-// ========================================
-// DATE FORMATTING
-// ========================================
+/* ========================================
+   DATE
+======================================== */
 
 function formatDate(
     dateString
 ) {
 
     if (!dateString) {
-
         return "NO DEADLINE";
-
     }
-
 
     const date =
         new Date(
             dateString +
             "T00:00:00"
         );
-
 
     return date.toLocaleDateString(
         "en-GB",
@@ -1891,27 +1769,21 @@ function formatDate(
             year: "numeric"
         }
     ).toUpperCase();
-
 }
-
 
 function formatShortDate(
     dateString
 ) {
 
     if (!dateString) {
-
         return "NONE";
-
     }
-
 
     const date =
         new Date(
             dateString +
             "T00:00:00"
         );
-
 
     return date.toLocaleDateString(
         "en-GB",
@@ -1920,9 +1792,7 @@ function formatShortDate(
             month: "short"
         }
     ).toUpperCase();
-
 }
-
 
 function formatDateTime(
     dateString
@@ -1933,7 +1803,6 @@ function formatDateTime(
             dateString
         );
 
-
     return date.toLocaleDateString(
         "en-GB",
         {
@@ -1942,13 +1811,12 @@ function formatDateTime(
             year: "numeric"
         }
     ).toUpperCase();
-
 }
 
 
-// ========================================
-// SECURITY
-// ========================================
+/* ========================================
+   SECURITY
+======================================== */
 
 function escapeHTML(
     text
@@ -1959,46 +1827,38 @@ function escapeHTML(
             "div"
         );
 
-
     div.textContent =
         text;
 
-
     return div.innerHTML;
-
 }
 
 
-// ========================================
-// LIVE INTELLIGENCE REFRESH
-// ========================================
+/* ========================================
+   REFRESH
+======================================== */
 
 function refreshNexus() {
 
     updateDashboard();
 
+    renderActivityFeed();
 
     if (
         !missions.classList.contains(
             "hidden"
         )
     ) {
-
         loadMissions();
-
     }
-
 
     if (
         !archive.classList.contains(
             "hidden"
         )
     ) {
-
         loadArchive();
-
     }
-
 
     if (
         selectedMissionId !== null &&
@@ -2010,7 +1870,6 @@ function refreshNexus() {
         const missionsData =
             getMissions();
 
-
         const mission =
             missionsData.find(
                 mission =>
@@ -2018,32 +1877,25 @@ function refreshNexus() {
                     selectedMissionId
             );
 
-
         if (mission) {
-
             renderMissionDetail(
                 mission
             );
-
         }
-
     }
-
 }
 
 
-// ========================================
-// INITIALISE
-// ========================================
+/* ========================================
+   INITIALISE
+======================================== */
 
 refreshNexus();
-
 
 setInterval(
     refreshNexus,
     60000
 );
-
 
 if (
     "serviceWorker" in navigator
@@ -2052,5 +1904,4 @@ if (
     navigator.serviceWorker.register(
         "./service-worker.js"
     );
-
 }
