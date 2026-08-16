@@ -1533,3 +1533,113 @@ button:active {
 
     background-color: #111822;
 }
+
+/* ========================================
+   DEADLINE INTELLIGENCE
+======================================== */
+
+.mission-card[data-deadline-state="approaching"] {
+    border-color: #77683a;
+
+    box-shadow:
+        0 8px 28px rgba(0, 0, 0, 0.34),
+        0 0 20px rgba(205, 165, 55, 0.16),
+        0 0 42px rgba(190, 150, 40, 0.08);
+}
+
+.mission-card[data-deadline-state="urgent"] {
+    border-color: #8c6437;
+
+    box-shadow:
+        0 8px 28px rgba(0, 0, 0, 0.38),
+        0 0 22px rgba(225, 145, 55, 0.24),
+        0 0 48px rgba(220, 125, 45, 0.11);
+}
+
+.mission-card[data-deadline-state="today"] {
+    border-color: #8e4a50;
+
+    box-shadow:
+        0 8px 28px rgba(0, 0, 0, 0.4),
+        0 0 24px rgba(220, 65, 75, 0.25),
+        0 0 52px rgba(210, 55, 65, 0.12);
+}
+
+.mission-card[data-deadline-state="overdue"] {
+    border-color: #9f3945;
+
+    animation:
+        deadlinePulse 2.5s ease-in-out infinite;
+
+    box-shadow:
+        0 8px 28px rgba(0, 0, 0, 0.4),
+        0 0 26px rgba(220, 55, 65, 0.3),
+        0 0 55px rgba(210, 45, 55, 0.14);
+}
+
+.mission-card[data-deadline-state="overdue"] .deadline-status,
+.mission-card[data-deadline-state="today"] .deadline-status {
+    color: var(--red-bright);
+
+    text-shadow:
+        0 0 9px rgba(225, 65, 75, 0.6);
+}
+
+.mission-card[data-deadline-state="urgent"] .deadline-status {
+    color: #e5a449;
+
+    text-shadow:
+        0 0 9px rgba(225, 150, 60, 0.55);
+}
+
+.mission-card[data-deadline-state="approaching"] .deadline-status {
+    color: var(--yellow-bright);
+
+    text-shadow:
+        0 0 9px rgba(225, 180, 60, 0.5);
+}
+
+@keyframes deadlinePulse {
+
+    0%,
+    100% {
+        box-shadow:
+            0 8px 28px rgba(0, 0, 0, 0.4),
+            0 0 20px rgba(220, 55, 65, 0.22);
+    }
+
+    50% {
+        box-shadow:
+            0 8px 28px rgba(0, 0, 0, 0.4),
+            0 0 30px rgba(220, 55, 65, 0.38),
+            0 0 55px rgba(210, 45, 55, 0.16);
+    }
+}
+
+
+/* DETAIL DEADLINES */
+
+.mission-detail-card[data-deadline-state="today"],
+.mission-detail-card[data-deadline-state="overdue"] {
+    border-color: #91434b;
+}
+
+.mission-detail-card[data-deadline-state="today"]
+.deadline-status,
+.mission-detail-card[data-deadline-state="overdue"]
+.deadline-status {
+    color: var(--red-bright);
+
+    text-shadow:
+        0 0 10px rgba(225, 65, 75, 0.6);
+}
+
+.mission-detail-card[data-deadline-state="urgent"]
+.deadline-status {
+    color: #e5a449;
+}
+
+.mission-detail-card[data-deadline-state="approaching"]
+.deadline-status {
+    color: var(--yellow-bright);
+}

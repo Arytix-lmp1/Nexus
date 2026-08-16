@@ -1,46 +1,21 @@
 const dashboard = document.getElementById("dashboard");
-
 const missions = document.getElementById("missions");
+const missionCreator = document.getElementById("missionCreator");
+const missionDetail = document.getElementById("missionDetail");
+const missionDetailContent = document.getElementById("missionDetailContent");
 
-const missionCreator =
-    document.getElementById("missionCreator");
+const missionList = document.getElementById("missionList");
+const missionCount = document.getElementById("missionCount");
 
-const missionDetail =
-    document.getElementById("missionDetail");
+const archive = document.getElementById("archive");
+const archiveList = document.getElementById("archiveList");
+const archiveCount = document.getElementById("archiveCount");
 
-const missionDetailContent =
-    document.getElementById("missionDetailContent");
-
-const missionList =
-    document.getElementById("missionList");
-
-const missionCount =
-    document.getElementById("missionCount");
-
-const archive =
-    document.getElementById("archive");
-
-const archiveList =
-    document.getElementById("archiveList");
-
-const archiveCount =
-    document.getElementById("archiveCount");
-
-const activeMissionStat =
-    document.getElementById("activeMissionStat");
-
-const completionRateStat =
-    document.getElementById("completionRateStat");
-
-const nextDeadlineStat =
-    document.getElementById("nextDeadlineStat");
-
-const currentPriority =
-    document.getElementById("currentPriority");
-
-const priorityIndicator =
-    document.getElementById("priorityIndicator");
-
+const activeMissionStat = document.getElementById("activeMissionStat");
+const completionRateStat = document.getElementById("completionRateStat");
+const nextDeadlineStat = document.getElementById("nextDeadlineStat");
+const currentPriority = document.getElementById("currentPriority");
+const priorityIndicator = document.getElementById("priorityIndicator");
 
 let selectedMissionId = null;
 
@@ -52,11 +27,8 @@ let selectedMissionId = null;
 function openMissions() {
 
     dashboard.classList.add("hidden");
-
     archive.classList.add("hidden");
-
     missionCreator.classList.add("hidden");
-
     missionDetail.classList.add("hidden");
 
     missions.classList.remove("hidden");
@@ -68,11 +40,8 @@ function openMissions() {
 function goHome() {
 
     missions.classList.add("hidden");
-
     missionCreator.classList.add("hidden");
-
     missionDetail.classList.add("hidden");
-
     archive.classList.add("hidden");
 
     dashboard.classList.remove("hidden");
@@ -106,11 +75,8 @@ function closeMissionCreator() {
 function openArchive() {
 
     dashboard.classList.add("hidden");
-
     missions.classList.add("hidden");
-
     missionCreator.classList.add("hidden");
-
     missionDetail.classList.add("hidden");
 
     archive.classList.remove("hidden");
@@ -130,7 +96,7 @@ function goHomeFromArchive() {
 
 
 // ========================================
-// DASHBOARD INTELLIGENCE
+// DASHBOARD
 // ========================================
 
 function updateDashboard() {
@@ -140,12 +106,10 @@ function updateDashboard() {
             localStorage.getItem("nexusMissions")
         ) || [];
 
-
     const activeMissions =
         missionsData.filter(
             mission => !mission.completed
         );
-
 
     const completedMissions =
         missionsData.filter(
@@ -153,17 +117,11 @@ function updateDashboard() {
         );
 
 
-    // ACTIVE MISSIONS
-
     activeMissionStat.textContent =
-        String(activeMissions.length)
-            .padStart(2, "0");
+        String(activeMissions.length).padStart(2, "0");
 
-
-    // COMPLETION RATE
 
     let completionRate = 0;
-
 
     if (missionsData.length > 0) {
 
@@ -172,15 +130,13 @@ function updateDashboard() {
                 (completedMissions.length /
                 missionsData.length) * 100
             );
-
     }
-
 
     completionRateStat.textContent =
         `${completionRate}%`;
 
 
-    // NEXT DEADLINE
+    // Find nearest deadline
 
     const missionsWithDeadlines =
         activeMissions
@@ -189,8 +145,8 @@ function updateDashboard() {
             )
             .sort(
                 (a, b) =>
-                    new Date(a.deadline) -
-                    new Date(b.deadline)
+                    getDeadlineTimestamp(a.deadline) -
+                    getDeadlineTimestamp(b.deadline)
             );
 
 
@@ -199,21 +155,16 @@ function updateDashboard() {
         const nextMission =
             missionsWithDeadlines[0];
 
-
         nextDeadlineStat.textContent =
-            formatShortDate(
+            getDeadlineShortStatus(
                 nextMission.deadline
             );
 
     } else {
 
-        nextDeadlineStat.textContent =
-            "NONE";
-
+        nextDeadlineStat.textContent = "NONE";
     }
 
-
-    // CURRENT PRIORITY
 
     updateCurrentPriority(activeMissions);
 }
@@ -228,7 +179,6 @@ function updateCurrentPriority(activeMissions) {
     if (activeMissions.length === 0) {
 
         currentPriority.innerHTML = `
-
             <strong>
                 NO ACTIVE PRIORITY
             </strong>
@@ -236,7 +186,6 @@ function updateCurrentPriority(activeMissions) {
             <p>
                 Nexus is awaiting an objective.
             </p>
-
         `;
 
         priorityIndicator.textContent =
@@ -250,15 +199,10 @@ function updateCurrentPriority(activeMissions) {
 
 
     const priorityOrder = {
-
         critical: 4,
-
         high: 3,
-
         normal: 2,
-
         low: 1
-
     };
 
 
@@ -276,34 +220,27 @@ function updateCurrentPriority(activeMissions) {
         highestPriority.priority || "normal";
 
 
-    const priorityText =
-        priority.toUpperCase();
+    priorityIndicator.dataset.priority =
+        priority;
+
+    priorityIndicator.textContent =
+        `● ${priority.toUpperCase()}`;
 
 
     currentPriority.dataset.priority =
         priority;
 
 
-    priorityIndicator.dataset.priority =
-        priority;
-
-
-    priorityIndicator.textContent =
-        `● ${priorityText}`;
-
-
     currentPriority.innerHTML = `
-
         <strong>
             ${escapeHTML(highestPriority.name)}
         </strong>
 
         <p>
-            ${priorityText} PRIORITY
+            ${priority.toUpperCase()} PRIORITY
             •
             ${highestPriority.progress || 0}% COMPLETE
         </p>
-
     `;
 }
 
@@ -395,13 +332,12 @@ function saveMission() {
 
     missions.classList.remove("hidden");
 
-
     loadMissions();
 }
 
 
 // ========================================
-// LOAD ACTIVE MISSIONS
+// LOAD MISSIONS
 // ========================================
 
 function loadMissions() {
@@ -419,14 +355,12 @@ function loadMissions() {
 
 
     missionCount.textContent =
-        String(activeMissions.length)
-            .padStart(2, "0");
+        String(activeMissions.length).padStart(2, "0");
 
 
     if (activeMissions.length === 0) {
 
         missionList.innerHTML = `
-
             <div class="empty-state">
 
                 <span>
@@ -438,8 +372,9 @@ function loadMissions() {
                 </p>
 
             </div>
-
         `;
+
+        updateDashboard();
 
         return;
     }
@@ -462,6 +397,16 @@ function loadMissions() {
 
             missionElement.dataset.priority =
                 mission.priority || "normal";
+
+
+            const deadlineState =
+                getDeadlineState(
+                    mission.deadline
+                );
+
+
+            missionElement.dataset.deadlineState =
+                deadlineState;
 
 
             const progress =
@@ -511,7 +456,9 @@ function loadMissions() {
 
 
                     <div class="mission-title">
+
                         ${escapeHTML(mission.name)}
+
                     </div>
 
 
@@ -573,10 +520,10 @@ function loadMissions() {
                         <div>
 
                             <span>
-                                STATUS
+                                TIME STATUS
                             </span>
 
-                            <strong>
+                            <strong class="deadline-status">
                                 ${countdown}
                             </strong>
 
@@ -606,9 +553,11 @@ function loadMissions() {
             missionList.appendChild(
                 missionElement
             );
-
         }
     );
+
+
+    updateDashboard();
 }
 
 
@@ -638,11 +587,9 @@ function openMissionDetail(id) {
 
     selectedMissionId = id;
 
-
     missions.classList.add("hidden");
 
     missionDetail.classList.remove("hidden");
-
 
     renderMissionDetail(mission);
 }
@@ -660,6 +607,12 @@ function renderMissionDetail(mission) {
 
     const priority =
         mission.priority || "normal";
+
+
+    const deadlineState =
+        getDeadlineState(
+            mission.deadline
+        );
 
 
     const deadlineText =
@@ -687,6 +640,7 @@ function renderMissionDetail(mission) {
         <div
             class="mission-detail-card"
             data-priority="${priority}"
+            data-deadline-state="${deadlineState}"
         >
 
             <div class="detail-top">
@@ -712,7 +666,9 @@ function renderMissionDetail(mission) {
 
 
             <h2 class="detail-title">
+
                 ${escapeHTML(mission.name)}
+
             </h2>
 
 
@@ -789,7 +745,7 @@ function renderMissionDetail(mission) {
                         TIME STATUS
                     </span>
 
-                    <strong>
+                    <strong class="deadline-status">
                         ${countdown}
                     </strong>
 
@@ -824,7 +780,6 @@ function renderMissionDetail(mission) {
             </div>
 
         </div>
-
     `;
 }
 
@@ -847,7 +802,6 @@ function previewProgress(value) {
 
         progressValue.textContent =
             `${value}%`;
-
     }
 
 
@@ -855,7 +809,6 @@ function previewProgress(value) {
 
         progressBar.style.width =
             `${value}%`;
-
     }
 }
 
@@ -956,7 +909,6 @@ function completeMission(id) {
 
     selectedMissionId = null;
 
-
     loadMissions();
 }
 
@@ -980,14 +932,12 @@ function loadArchive() {
 
 
     archiveCount.textContent =
-        String(completedMissions.length)
-            .padStart(2, "0");
+        String(completedMissions.length).padStart(2, "0");
 
 
     if (completedMissions.length === 0) {
 
         archiveList.innerHTML = `
-
             <div class="empty-state">
 
                 <span>
@@ -999,7 +949,6 @@ function loadArchive() {
                 </p>
 
             </div>
-
         `;
 
         return;
@@ -1029,14 +978,6 @@ function loadArchive() {
                     mission.priority || "normal";
 
 
-                const completedDate =
-                    mission.completedAt
-                        ? formatDateTime(
-                            mission.completedAt
-                        )
-                        : "UNKNOWN";
-
-
                 missionElement.innerHTML = `
 
                     <div class="mission-header">
@@ -1054,9 +995,7 @@ function loadArchive() {
 
                     <div
                         class="mission-click-area"
-                        onclick="
-                            openMissionDetail(${mission.id})
-                        "
+                        onclick="openMissionDetail(${mission.id})"
                     >
 
                         <div class="mission-title">
@@ -1113,7 +1052,9 @@ function loadArchive() {
                                 </span>
 
                                 <strong>
-                                    ${completedDate}
+                                    ${mission.completedAt
+                                        ? formatDateTime(mission.completedAt)
+                                        : "UNKNOWN"}
                                 </strong>
 
                             </div>
@@ -1121,21 +1062,202 @@ function loadArchive() {
                         </div>
 
                     </div>
-
                 `;
 
 
                 archiveList.appendChild(
                     missionElement
                 );
-
             }
         );
 }
 
 
 // ========================================
-// DATE FUNCTIONS
+// DEADLINE INTELLIGENCE
+// ========================================
+
+function getDeadlineTimestamp(deadline) {
+
+    if (!deadline) {
+
+        return Infinity;
+    }
+
+
+    return new Date(
+        deadline + "T00:00:00"
+    ).getTime();
+}
+
+
+function getDaysUntilDeadline(deadline) {
+
+    if (!deadline) {
+
+        return null;
+    }
+
+
+    const today =
+        new Date();
+
+    today.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    const target =
+        new Date(
+            deadline + "T00:00:00"
+        );
+
+
+    return Math.ceil(
+        (
+            target.getTime() -
+            today.getTime()
+        ) /
+        (1000 * 60 * 60 * 24)
+    );
+}
+
+
+function getDeadlineState(deadline) {
+
+    if (!deadline) {
+
+        return "none";
+    }
+
+
+    const days =
+        getDaysUntilDeadline(
+            deadline
+        );
+
+
+    if (days < 0) {
+
+        return "overdue";
+    }
+
+
+    if (days === 0) {
+
+        return "today";
+    }
+
+
+    if (days <= 2) {
+
+        return "urgent";
+    }
+
+
+    if (days <= 7) {
+
+        return "approaching";
+    }
+
+
+    return "normal";
+}
+
+
+function getDeadlineText(deadline) {
+
+    if (!deadline) {
+
+        return "NO DEADLINE";
+    }
+
+
+    const days =
+        getDaysUntilDeadline(
+            deadline
+        );
+
+
+    if (days < 0) {
+
+        const overdueDays =
+            Math.abs(days);
+
+
+        if (overdueDays === 1) {
+
+            return "1 DAY OVERDUE";
+        }
+
+
+        return `${overdueDays} DAYS OVERDUE`;
+    }
+
+
+    if (days === 0) {
+
+        return "DUE TODAY";
+    }
+
+
+    if (days === 1) {
+
+        return "DUE TOMORROW";
+    }
+
+
+    return `${days} DAYS`;
+}
+
+
+function getDeadlineShortStatus(deadline) {
+
+    if (!deadline) {
+
+        return "NONE";
+    }
+
+
+    const days =
+        getDaysUntilDeadline(
+            deadline
+        );
+
+
+    if (days < 0) {
+
+        return "OVERDUE";
+    }
+
+
+    if (days === 0) {
+
+        return "TODAY";
+    }
+
+
+    if (days === 1) {
+
+        return "TOMORROW";
+    }
+
+
+    if (days <= 7) {
+
+        return `${days} DAYS`;
+    }
+
+
+    return formatShortDate(deadline);
+}
+
+
+// ========================================
+// DATE FORMATTING
 // ========================================
 
 function formatDate(dateString) {
@@ -1204,60 +1326,6 @@ function formatDateTime(dateString) {
 }
 
 
-function getDeadlineText(deadline) {
-
-    if (!deadline) {
-
-        return "NO DEADLINE";
-    }
-
-
-    const today =
-        new Date();
-
-    today.setHours(0, 0, 0, 0);
-
-
-    const target =
-        new Date(
-            deadline + "T00:00:00"
-        );
-
-
-    const difference =
-        target.getTime() -
-        today.getTime();
-
-
-    const days =
-        Math.ceil(
-            difference /
-            (1000 * 60 * 60 * 24)
-        );
-
-
-    if (days < 0) {
-
-        return "OVERDUE";
-    }
-
-
-    if (days === 0) {
-
-        return "DUE TODAY";
-    }
-
-
-    if (days === 1) {
-
-        return "DUE TOMORROW";
-    }
-
-
-    return `${days} DAYS`;
-}
-
-
 // ========================================
 // SECURITY
 // ========================================
@@ -1280,14 +1348,9 @@ function escapeHTML(text) {
 updateDashboard();
 
 
-// ========================================
-// SERVICE WORKER
-// ========================================
-
 if ("serviceWorker" in navigator) {
 
     navigator.serviceWorker.register(
         "./service-worker.js"
     );
-
 }
