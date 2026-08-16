@@ -2,20 +2,39 @@ const dashboard = document.getElementById("dashboard");
 const missions = document.getElementById("missions");
 const missionCreator = document.getElementById("missionCreator");
 const missionDetail = document.getElementById("missionDetail");
-const missionDetailContent = document.getElementById("missionDetailContent");
+const missionDetailContent =
+    document.getElementById("missionDetailContent");
 
-const missionList = document.getElementById("missionList");
-const missionCount = document.getElementById("missionCount");
+const missionList =
+    document.getElementById("missionList");
 
-const archive = document.getElementById("archive");
-const archiveList = document.getElementById("archiveList");
-const archiveCount = document.getElementById("archiveCount");
+const missionCount =
+    document.getElementById("missionCount");
 
-const activeMissionStat = document.getElementById("activeMissionStat");
-const completionRateStat = document.getElementById("completionRateStat");
-const nextDeadlineStat = document.getElementById("nextDeadlineStat");
-const currentPriority = document.getElementById("currentPriority");
-const priorityIndicator = document.getElementById("priorityIndicator");
+const archive =
+    document.getElementById("archive");
+
+const archiveList =
+    document.getElementById("archiveList");
+
+const archiveCount =
+    document.getElementById("archiveCount");
+
+const activeMissionStat =
+    document.getElementById("activeMissionStat");
+
+const completionRateStat =
+    document.getElementById("completionRateStat");
+
+const nextDeadlineStat =
+    document.getElementById("nextDeadlineStat");
+
+const currentPriority =
+    document.getElementById("currentPriority");
+
+const priorityIndicator =
+    document.getElementById("priorityIndicator");
+
 
 let selectedMissionId = null;
 
@@ -68,6 +87,18 @@ function closeMissionCreator() {
 }
 
 
+function closeMissionDetail() {
+
+    selectedMissionId = null;
+
+    missionDetail.classList.add("hidden");
+
+    missions.classList.remove("hidden");
+
+    loadMissions();
+}
+
+
 // ========================================
 // ARCHIVE
 // ========================================
@@ -106,10 +137,12 @@ function updateDashboard() {
             localStorage.getItem("nexusMissions")
         ) || [];
 
+
     const activeMissions =
         missionsData.filter(
             mission => !mission.completed
         );
+
 
     const completedMissions =
         missionsData.filter(
@@ -123,13 +156,17 @@ function updateDashboard() {
 
     let completionRate = 0;
 
+
     if (missionsData.length > 0) {
 
         completionRate =
             Math.round(
-                (completedMissions.length /
-                missionsData.length) * 100
+                (
+                    completedMissions.length /
+                    missionsData.length
+                ) * 100
             );
+
     }
 
 
@@ -154,6 +191,7 @@ function updateDashboard() {
         const nextMission =
             missionsWithDeadlines[0];
 
+
         nextDeadlineStat.textContent =
             getDeadlineShortStatus(
                 nextMission.deadline
@@ -162,10 +200,13 @@ function updateDashboard() {
     } else {
 
         nextDeadlineStat.textContent = "NONE";
+
     }
 
 
-    updateCurrentPriority(activeMissions);
+    updateCurrentPriority(
+        activeMissions
+    );
 }
 
 
@@ -187,21 +228,26 @@ function updateCurrentPriority(activeMissions) {
             </p>
         `;
 
+
         priorityIndicator.textContent =
             "● STANDBY";
 
+
         priorityIndicator.dataset.priority =
             "none";
+
 
         return;
     }
 
 
     const priorityOrder = {
+
         critical: 4,
         high: 3,
         normal: 2,
         low: 1
+
     };
 
 
@@ -222,6 +268,7 @@ function updateCurrentPriority(activeMissions) {
     priorityIndicator.dataset.priority =
         priority;
 
+
     priorityIndicator.textContent =
         `● ${priority.toUpperCase()}`;
 
@@ -231,15 +278,17 @@ function updateCurrentPriority(activeMissions) {
 
 
     currentPriority.innerHTML = `
+
         <strong>
             ${escapeHTML(highestPriority.name)}
         </strong>
 
         <p>
-            ${priority.toUpperCase()} PRIORITY
+            ${priority.toUpperCase()}
             •
             ${highestPriority.progress || 0}% COMPLETE
         </p>
+
     `;
 }
 
@@ -362,6 +411,7 @@ function loadMissions() {
     if (activeMissions.length === 0) {
 
         missionList.innerHTML = `
+
             <div class="empty-state">
 
                 <span>
@@ -373,7 +423,9 @@ function loadMissions() {
                 </p>
 
             </div>
+
         `;
+
 
         updateDashboard();
 
@@ -403,14 +455,10 @@ function loadMissions() {
                 mission.priority || "normal";
 
 
-            const deadlineState =
+            missionElement.dataset.deadlineState =
                 getDeadlineState(
                     mission.deadline
                 );
-
-
-            missionElement.dataset.deadlineState =
-                deadlineState;
 
 
             const progress =
@@ -427,12 +475,6 @@ function loadMissions() {
 
             const totalSubtasks =
                 mission.subtasks.length;
-
-
-            const deadlineText =
-                mission.deadline
-                    ? formatDate(mission.deadline)
-                    : "NO DEADLINE";
 
 
             const countdown =
@@ -510,7 +552,9 @@ function loadMissions() {
                             </span>
 
                             <strong>
-                                ${completedSubtasks} / ${totalSubtasks}
+                                ${completedSubtasks}
+                                /
+                                ${totalSubtasks}
                             </strong>
 
                         </div>
@@ -565,6 +609,7 @@ function loadMissions() {
             missionList.appendChild(
                 missionElement
             );
+
         }
     );
 
@@ -608,9 +653,11 @@ function openMissionDetail(id) {
 
     selectedMissionId = id;
 
+
     missions.classList.add("hidden");
 
     missionDetail.classList.remove("hidden");
+
 
     renderMissionDetail(mission);
 }
@@ -701,8 +748,6 @@ function renderMissionDetail(mission) {
             </h2>
 
 
-            <!-- PROGRESS -->
-
             <div class="detail-progress">
 
                 <div class="progress-header">
@@ -741,8 +786,6 @@ function renderMissionDetail(mission) {
             </div>
 
 
-            <!-- SUBTASKS -->
-
             <div class="subtask-section">
 
                 <div class="subtask-heading">
@@ -760,9 +803,7 @@ function renderMissionDetail(mission) {
 
                 <div id="subtaskList">
 
-                    ${renderSubtasks(
-                        mission
-                    )}
+                    ${renderSubtasks(mission)}
 
                 </div>
 
@@ -779,6 +820,7 @@ function renderMissionDetail(mission) {
                         "
                     >
 
+
                     <button onclick="addSubtask()">
                         + ADD
                     </button>
@@ -787,8 +829,6 @@ function renderMissionDetail(mission) {
 
             </div>
 
-
-            <!-- MISSION INFORMATION -->
 
             <div class="detail-grid">
 
@@ -859,6 +899,7 @@ function renderMissionDetail(mission) {
             </div>
 
         </div>
+
     `;
 }
 
@@ -872,11 +913,13 @@ function renderSubtasks(mission) {
     if (mission.subtasks.length === 0) {
 
         return `
+
             <div class="subtask-empty">
 
                 NO OBJECTIVES YET
 
             </div>
+
         `;
     }
 
@@ -923,6 +966,7 @@ function renderSubtasks(mission) {
                     </button>
 
                 </div>
+
             `
         )
         .join("");
@@ -1096,7 +1140,7 @@ function updateMissionAfterSubtaskChange(
 
 
 // ========================================
-// PROGRESS CALCULATION
+// PROGRESS
 // ========================================
 
 function calculateMissionProgress(mission) {
@@ -1117,8 +1161,10 @@ function calculateMissionProgress(mission) {
 
 
     return Math.round(
-        (completed /
-        mission.subtasks.length) * 100
+        (
+            completed /
+            mission.subtasks.length
+        ) * 100
     );
 }
 
@@ -1169,7 +1215,9 @@ function completeMission(id) {
 
     mission.subtasks.forEach(
         subtask => {
+
             subtask.completed = true;
+
         }
     );
 
@@ -1209,12 +1257,15 @@ function loadArchive() {
 
 
     archiveCount.textContent =
-        String(completedMissions.length).padStart(2, "0");
+        String(
+            completedMissions.length
+        ).padStart(2, "0");
 
 
     if (completedMissions.length === 0) {
 
         archiveList.innerHTML = `
+
             <div class="empty-state">
 
                 <span>
@@ -1226,6 +1277,7 @@ function loadArchive() {
                 </p>
 
             </div>
+
         `;
 
         return;
@@ -1357,9 +1409,13 @@ function loadArchive() {
                                 </span>
 
                                 <strong>
-                                    ${mission.completedAt
-                                        ? formatDateTime(mission.completedAt)
-                                        : "UNKNOWN"}
+                                    ${
+                                        mission.completedAt
+                                            ? formatDateTime(
+                                                mission.completedAt
+                                            )
+                                            : "UNKNOWN"
+                                    }
                                 </strong>
 
                             </div>
@@ -1367,19 +1423,21 @@ function loadArchive() {
                         </div>
 
                     </div>
+
                 `;
 
 
                 archiveList.appendChild(
                     missionElement
                 );
+
             }
         );
 }
 
 
 // ========================================
-// DEADLINE INTELLIGENCE
+// DEADLINES
 // ========================================
 
 function getDeadlineTimestamp(deadline) {
@@ -1406,6 +1464,7 @@ function getDaysUntilDeadline(deadline) {
 
     const today =
         new Date();
+
 
     today.setHours(
         0,
@@ -1640,7 +1699,9 @@ function escapeHTML(text) {
     const div =
         document.createElement("div");
 
+
     div.textContent = text;
+
 
     return div.innerHTML;
 }
@@ -1658,4 +1719,5 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register(
         "./service-worker.js"
     );
+
 }

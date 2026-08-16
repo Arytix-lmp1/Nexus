@@ -4,14 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <meta name="theme-color" content="#08090d">
-    <meta name="description" content="Nexus personal command centre">
 
-    <link rel="manifest" href="manifest.json">
+    <title>NEXUS</title>
+
     <link rel="stylesheet" href="style.css">
-
-    <title>Nexus</title>
 </head>
 
 <body>
@@ -21,150 +18,97 @@
     <div id="dashboard">
 
         <header>
-            <p class="eyebrow">NEXUS // COMMAND CENTRE</p>
+
+            <div class="system-label">
+                NEXUS // PERSONAL COMMAND SYSTEM
+            </div>
 
             <h1>NEXUS</h1>
 
             <p id="status">
                 SYSTEM ONLINE
             </p>
+
         </header>
 
 
-        <!-- TELEMETRY -->
-
-        <section class="telemetry">
-
-            <div class="telemetry-card">
-
-                <span>ACTIVE MISSIONS</span>
-
-                <strong id="activeMissionStat">
-                    00
-                </strong>
-
-            </div>
-
-
-            <div class="telemetry-card">
-
-                <span>COMPLETION RATE</span>
-
-                <strong id="completionRateStat">
-                    00%
-                </strong>
-
-            </div>
-
-
-            <div class="telemetry-card">
-
-                <span>NEXT DEADLINE</span>
-
-                <strong id="nextDeadlineStat">
-                    NONE
-                </strong>
-
-            </div>
-
-
-            <div class="telemetry-card">
-
-                <span>SYSTEM LOAD</span>
-
-                <strong class="nominal">
-                    NOMINAL
-                </strong>
-
-            </div>
-
-        </section>
-
-
-        <!-- MAIN DASHBOARD -->
-
         <main class="dashboard">
 
-            <div class="card" onclick="openMissions()">
+            <div
+                class="card"
+                onclick="openMissions()"
+            >
 
-                <div class="card-icon">
-                    ◈
-                </div>
-
-                <h2>MISSION CONTROL</h2>
+                <h2>MISSIONS</h2>
 
                 <p>
-                    Manage active missions and objectives.
+                    Manage active objectives and operations.
                 </p>
+
+                <div class="card-stat">
+
+                    <span>ACTIVE</span>
+
+                    <strong id="activeMissionStat">
+                        00
+                    </strong>
+
+                </div>
 
             </div>
 
 
-            <div class="card">
-
-                <div class="card-icon">
-                    ◉
-                </div>
-
-                <h2>SYSTEM STATUS</h2>
-
-                <p>
-                    Nexus core operating normally.
-                </p>
-
-            </div>
-
-
-            <div class="card">
-
-                <div class="card-icon">
-                    ◇
-                </div>
-
-                <h2>TELEMETRY</h2>
-
-                <p>
-                    Personal performance data.
-                </p>
-
-            </div>
-
-
-            <div class="card" onclick="openArchive()">
-
-                <div class="card-icon">
-                    ▣
-                </div>
+            <div
+                class="card"
+                onclick="openArchive()"
+            >
 
                 <h2>ARCHIVE</h2>
 
                 <p>
-                    Completed missions and records.
+                    Review completed missions.
                 </p>
 
-            </div>
+                <div class="card-stat">
 
-        </main>
+                    <span>COMPLETED</span>
 
+                    <strong id="completionRateStat">
+                        0%
+                    </strong>
 
-        <!-- CURRENT PRIORITY -->
-
-        <section class="priority-panel">
-
-            <div class="priority-heading">
-
-                <span>
-                    CURRENT PRIORITY
-                </span>
-
-                <span id="priorityIndicator">
-                    ● STANDBY
-                </span>
+                </div>
 
             </div>
 
 
-            <div id="currentPriority">
+            <div class="card">
+
+                <h2>NEXT DEADLINE</h2>
+
+                <p>
+                    Closest active mission deadline.
+                </p>
+
+                <div class="card-stat">
+
+                    <span>STATUS</span>
+
+                    <strong id="nextDeadlineStat">
+                        NONE
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="card priority-card"
+                id="currentPriority"
+            >
+
+                <h2>CURRENT PRIORITY</h2>
 
                 <strong>
                     NO ACTIVE PRIORITY
@@ -176,23 +120,15 @@
 
             </div>
 
-        </section>
+        </main>
 
-
-        <!-- SYSTEM FOOTER -->
 
         <div class="system-footer">
 
-            <span>
-                NEXUS CORE
-            </span>
+            <span>NEXUS CORE</span>
 
-            <span>
-                v0.3
-            </span>
-
-            <span>
-                ● ONLINE
+            <span id="priorityIndicator">
+                ● STANDBY
             </span>
 
         </div>
@@ -200,218 +136,264 @@
     </div>
 
 
-    <!-- MISSION CONTROL -->
+    <!-- MISSIONS -->
 
-    <div id="missions" class="hidden">
+    <section
+        id="missions"
+        class="hidden"
+    >
 
-        <header class="section-header">
+        <header class="page-header">
 
-            <p class="eyebrow">
-                NEXUS // OPERATIONS
-            </p>
+            <button onclick="goHome()">
+                ← DASHBOARD
+            </button>
 
-            <h1>
-                MISSION CONTROL
-            </h1>
+            <div>
 
-            <p class="section-status">
-                ● SYSTEM READY
-            </p>
-
-        </header>
-
-
-        <div class="mission-toolbar">
-
-            <div class="mission-summary">
-
-                <span>
-                    ACTIVE MISSIONS
+                <span class="system-label">
+                    NEXUS // OPERATIONS
                 </span>
 
-                <strong id="missionCount">
-                    00
-                </strong>
+                <h1>MISSIONS</h1>
 
             </div>
-
 
             <button onclick="createMission()">
                 + NEW MISSION
             </button>
 
-        </div>
+        </header>
 
 
-        <div id="missionList"></div>
+        <main class="mission-container">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span>ACTIVE OPERATIONS</span>
+
+                    <strong id="missionCount">
+                        00
+                    </strong>
+
+                </div>
+
+            </div>
 
 
-        <div class="section-footer">
+            <div id="missionList">
 
-            <button onclick="goHome()">
-                ← RETURN TO NEXUS
+                <div class="empty-state">
+
+                    <span>
+                        NO ACTIVE MISSIONS
+                    </span>
+
+                    <p>
+                        Awaiting new objectives.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </section>
+
+
+    <!-- MISSION CREATOR -->
+
+    <section
+        id="missionCreator"
+        class="hidden"
+    >
+
+        <header class="page-header">
+
+            <button onclick="closeMissionCreator()">
+                ← MISSIONS
             </button>
 
-        </div>
+            <div>
 
-    </div>
+                <span class="system-label">
+                    NEXUS // NEW OPERATION
+                </span>
+
+                <h1>NEW MISSION</h1>
+
+            </div>
+
+        </header>
+
+
+        <main class="creator-container">
+
+            <div class="creator-panel">
+
+                <label for="missionName">
+                    MISSION NAME
+                </label>
+
+                <input
+                    id="missionName"
+                    type="text"
+                    placeholder="Mission name"
+                    autocomplete="off"
+                >
+
+
+                <label for="missionPriority">
+                    PRIORITY
+                </label>
+
+                <select id="missionPriority">
+
+                    <option value="low">
+                        LOW PRIORITY
+                    </option>
+
+                    <option
+                        value="normal"
+                        selected
+                    >
+                        NORMAL PRIORITY
+                    </option>
+
+                    <option value="high">
+                        HIGH PRIORITY
+                    </option>
+
+                    <option value="critical">
+                        CRITICAL
+                    </option>
+
+                </select>
+
+
+                <label for="missionDeadline">
+                    DEADLINE
+                </label>
+
+                <input
+                    id="missionDeadline"
+                    type="date"
+                >
+
+
+                <div class="creator-actions">
+
+                    <button onclick="saveMission()">
+                        CREATE MISSION
+                    </button>
+
+                    <button onclick="closeMissionCreator()">
+                        CANCEL
+                    </button>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </section>
 
 
     <!-- MISSION DETAIL -->
 
-    <div id="missionDetail" class="hidden">
+    <section
+        id="missionDetail"
+        class="hidden"
+    >
 
-        <header class="section-header">
+        <header class="page-header">
 
-            <p class="eyebrow">
-                NEXUS // MISSION PROFILE
-            </p>
+            <button onclick="closeMissionDetail()">
+                ← BACK TO MISSIONS
+            </button>
 
-            <h1>
-                MISSION DETAIL
-            </h1>
+            <div>
 
-            <p class="section-status">
-                ● OBJECTIVE DATA
-            </p>
+                <span class="system-label">
+                    NEXUS // MISSION CONTROL
+                </span>
+
+                <h1>MISSION</h1>
+
+            </div>
 
         </header>
 
 
-        <div id="missionDetailContent"></div>
+        <main id="missionDetailContent"></main>
 
-
-        <div class="section-footer">
-
-            <button onclick="closeMissionDetail()">
-                ← RETURN TO MISSIONS
-            </button>
-
-        </div>
-
-    </div>
+    </section>
 
 
     <!-- ARCHIVE -->
 
-    <div id="archive" class="hidden">
+    <section
+        id="archive"
+        class="hidden"
+    >
 
-        <header class="section-header">
-
-            <p class="eyebrow">
-                NEXUS // RECORDS
-            </p>
-
-            <h1>
-                ARCHIVE
-            </h1>
-
-            <p class="section-status">
-                ● HISTORICAL RECORDS
-            </p>
-
-        </header>
-
-
-        <div class="mission-toolbar">
-
-            <div class="mission-summary">
-
-                <span>
-                    COMPLETED MISSIONS
-                </span>
-
-                <strong id="archiveCount">
-                    00
-                </strong>
-
-            </div>
-
-        </div>
-
-
-        <div id="archiveList"></div>
-
-
-        <div class="section-footer">
+        <header class="page-header">
 
             <button onclick="goHomeFromArchive()">
-                ← RETURN TO NEXUS
+                ← DASHBOARD
             </button>
 
-        </div>
+            <div>
 
-    </div>
+                <span class="system-label">
+                    NEXUS // ARCHIVE
+                </span>
 
+                <h1>ARCHIVE</h1>
 
-    <!-- NEW MISSION -->
-
-    <div id="missionCreator" class="hidden">
-
-        <header>
-
-            <p class="eyebrow">
-                NEXUS // OPERATIONS
-            </p>
-
-            <h1>
-                NEW MISSION
-            </h1>
+            </div>
 
         </header>
 
 
-        <div class="mission-form">
+        <main class="mission-container">
 
-            <input
-                id="missionName"
-                type="text"
-                placeholder="Mission name"
-            >
+            <div class="section-heading">
 
+                <div>
 
-            <select id="missionPriority">
+                    <span>COMPLETED OPERATIONS</span>
 
-                <option value="low">
-                    LOW PRIORITY
-                </option>
+                    <strong id="archiveCount">
+                        00
+                    </strong>
 
-                <option value="normal" selected>
-                    NORMAL PRIORITY
-                </option>
-
-                <option value="high">
-                    HIGH PRIORITY
-                </option>
-
-                <option value="critical">
-                    CRITICAL
-                </option>
-
-            </select>
-
-
-            <input
-                id="missionDeadline"
-                type="date"
-            >
-
-
-            <div class="mission-form-actions">
-
-                <button onclick="saveMission()">
-                    CREATE MISSION
-                </button>
-
-                <button onclick="closeMissionCreator()">
-                    CANCEL
-                </button>
+                </div>
 
             </div>
 
-        </div>
 
-    </div>
+            <div id="archiveList">
+
+                <div class="empty-state">
+
+                    <span>ARCHIVE EMPTY</span>
+
+                    <p>
+                        Completed missions will appear here.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </section>
 
 
     <script src="script.js"></script>
