@@ -1905,3 +1905,488 @@ if (
         "./service-worker.js"
     );
 }
+
+/* ========================================
+   NEXUS COMMAND TERMINAL
+======================================== */
+
+function initializeTerminal() {
+
+    if (document.getElementById("nexusTerminal")) {
+        return;
+    }
+
+    const terminal = document.createElement("section");
+
+    terminal.id = "nexusTerminal";
+    terminal.className = "nexus-terminal";
+
+    terminal.innerHTML = `
+        <div class="terminal-header">
+            <div>
+                <span class="terminal-status-dot">●</span>
+                NEXUS COMMAND TERMINAL
+            </div>
+
+            <span class="terminal-state">
+                ONLINE
+            </span>
+        </div>
+
+        <div
+            id="terminalOutput"
+            class="terminal-output"
+        >
+            <div class="terminal-line system">
+                NEXUS COMMAND TERMINAL INITIALIZED.
+            </div>
+
+            <div class="terminal-line system">
+                Type <span>help</span> for available commands.
+            </div>
+        </div>
+
+        <div class="terminal-input-row">
+
+            <span class="terminal-prompt">
+                &gt;
+            </span>
+
+            <input
+                id="terminalInput"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Enter command..."
+            >
+
+        </div>
+    `;
+
+    document.body.appendChild(terminal);
+
+    const input =
+        document.getElementById(
+            "terminalInput"
+        );
+
+    input.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (event.key === "Enter") {
+
+                const command =
+                    input.value.trim();
+
+                if (command !== "") {
+
+                    executeTerminalCommand(
+                        command
+                    );
+
+                }
+
+                input.value = "";
+            }
+        }
+    );
+}
+
+
+/* ========================================
+   TERMINAL OUTPUT
+======================================== */
+
+function terminalPrint(
+    text,
+    type = "normal"
+) {
+
+    const output =
+        document.getElementById(
+            "terminalOutput"
+        );
+
+    if (!output) {
+        return;
+    }
+
+    const line =
+        document.createElement(
+            "div"
+        );
+
+    line.className =
+        `terminal-line ${type}`;
+
+    line.innerHTML =
+        text;
+
+    output.appendChild(
+        line
+    );
+
+    output.scrollTop =
+        output.scrollHeight;
+}
+
+
+/* ========================================
+   COMMAND HANDLER
+======================================== */
+
+function executeTerminalCommand(
+    command
+) {
+
+    const cleanCommand =
+        command
+            .toLowerCase()
+            .trim();
+
+    terminalPrint(
+        `&gt; ${escapeHTML(command)}`,
+        "command"
+    );
+
+
+    /* HELP */
+
+    if (
+        cleanCommand === "help" ||
+        cleanCommand === "?"
+    ) {
+
+        terminalPrint(
+            `
+            <strong>AVAILABLE COMMANDS</strong><br>
+            <span>status</span>
+            &nbsp; System overview<br>
+
+            <span>missions</span>
+            &nbsp; Active mission list<br>
+
+            <span>archive</span>
+            &nbsp; Completed missions<br>
+
+            <span>activity</span>
+            &nbsp; Recent activity<br>
+
+            <span>clear</span>
+            &nbsp; Clear terminal<br>
+
+            <span>help</span>
+            &nbsp; Show commands
+            `,
+            "response"
+        );
+
+        return;
+    }
+
+
+    /* STATUS */
+
+    if (
+        cleanCommand === "status"
+    ) {
+
+        const missionsData =
+            getMissions();
+
+        const active =
+            missionsData.filter(
+                mission =>
+                    !mission.completed
+            );
+
+        const completed =
+            missionsData.filter(
+                mission =>
+                    mission.completed
+            );
+
+        const completion =
+            missionsData.length === 0
+                ? 0
+                : Math.round(
+                    (
+                        completed.length /
+                        missionsData.length
+                    ) * 100
+                );
+
+        const sorted =
+            sortActiveMissions(
+                active
+            );
+
+        const priority =
+            sorted.length > 0
+                ? (
+                    sorted[0].priority ||
+                    "normal"
+                ).toUpperCase()
+                : "STANDBY";
+
+        let deadline =
+            "NONE";
+
+        if (
+            sorted.length > 0
+        ) {
+
+            const deadlineMission =
+                sorted
+                    .filter(
+                        mission =>
+                            mission.deadline
+                    )
+                    .sort(
+                        (a, b) =>
+                            getDeadlineTimestamp(
+                                a.deadline
+                            ) -
+                            getDeadlineTimestamp(
+                                b.deadline
+                            )
+                    )[0];
+
+            if (deadlineMission) {
+
+                deadline =
+                    getDeadlineShortStatus(
+                        deadlineMission.deadline
+                    );
+            }
+        }
+
+        terminalPrint(
+            `
+            <strong>NEXUS SYSTEM STATUS</strong><br>
+            ────────────────────────<br>
+            SYSTEM
+            <span>ONLINE</span><br>
+
+            ACTIVE
+            <span>${String(
+                active.length
+            ).padStart(2, "0")}</span><br>
+
+            COMPLETION
+            <span>${completion}%</span><br>
+
+            PRIORITY
+            <span>${priority}</span><br>
+
+            NEXT DEADLINE
+            <span>${deadline}</span>
+            `,
+            "response"
+        );
+
+        return;
+    }
+
+
+    /* MISSIONS */
+
+    if (
+        cleanCommand === "missions"
+    ) {
+
+        const missionsData =
+            sortActiveMissions(
+                getMissions()
+            );
+
+        if (
+            missionsData.length === 0
+        ) {
+
+            terminalPrint(
+                "NO ACTIVE MISSIONS.",
+                "response"
+            );
+
+            return;
+        }
+
+        terminalPrint(
+            "<strong>ACTIVE MISSIONS</strong>",
+            "response"
+        );
+
+        missionsData.forEach(
+            mission => {
+
+                const progress =
+                    calculateMissionProgress(
+                        mission
+                    );
+
+                terminalPrint(
+                    `
+                    <span>
+                        ${escapeHTML(
+                            mission.name
+                        )}
+                    </span>
+                    ·
+                    ${(
+                        mission.priority ||
+                        "normal"
+                    ).toUpperCase()}
+                    ·
+                    ${progress}%
+                    `,
+                    "response"
+                );
+            }
+        );
+
+        return;
+    }
+
+
+    /* ARCHIVE */
+
+    if (
+        cleanCommand === "archive"
+    ) {
+
+        const missionsData =
+            getMissions();
+
+        const completed =
+            missionsData.filter(
+                mission =>
+                    mission.completed
+            );
+
+        if (
+            completed.length === 0
+        ) {
+
+            terminalPrint(
+                "ARCHIVE EMPTY.",
+                "response"
+            );
+
+            return;
+        }
+
+        terminalPrint(
+            `<strong>ARCHIVE</strong><br>
+             ${completed.length} COMPLETED MISSION(S).`,
+            "response"
+        );
+
+        completed
+            .slice()
+            .reverse()
+            .forEach(
+                mission => {
+
+                    terminalPrint(
+                        `✓ ${escapeHTML(
+                            mission.name
+                        )}`,
+                        "response"
+                    );
+                }
+            );
+
+        return;
+    }
+
+
+    /* ACTIVITY */
+
+    if (
+        cleanCommand === "activity"
+    ) {
+
+        const activity =
+            getActivity()
+                .slice()
+                .reverse()
+                .slice(0, 8);
+
+        if (
+            activity.length === 0
+        ) {
+
+            terminalPrint(
+                "NO ACTIVITY RECORDED.",
+                "response"
+            );
+
+            return;
+        }
+
+        terminalPrint(
+            "<strong>RECENT ACTIVITY</strong>",
+            "response"
+        );
+
+        activity.forEach(
+            event => {
+
+                terminalPrint(
+                    `
+                    ${formatActivityTime(
+                        event.timestamp
+                    )}
+                    ·
+                    ${escapeHTML(
+                        event.text
+                    )}
+                    `,
+                    "response"
+                );
+            }
+        );
+
+        return;
+    }
+
+
+    /* CLEAR */
+
+    if (
+        cleanCommand === "clear"
+    ) {
+
+        const output =
+            document.getElementById(
+                "terminalOutput"
+            );
+
+        output.innerHTML = "";
+
+        return;
+    }
+
+
+    /* UNKNOWN COMMAND */
+
+    terminalPrint(
+        `
+        UNKNOWN COMMAND:
+        <span>${escapeHTML(
+            command
+        )}</span><br>
+        Type <span>help</span> for available commands.
+        `,
+        "error"
+    );
+}
+
+
+/* ========================================
+   START TERMINAL
+======================================== */
+
+initializeTerminal();
